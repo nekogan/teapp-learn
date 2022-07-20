@@ -1,17 +1,18 @@
 package models
 
-type post struct {
-	ID     uint   `json:"id"`
-	Tea    tea    `json:"tea"`
-	Text   string `json:"text"`
-	Rating byte   `json:"rating"`
+type Post struct {
+	ID             uint   `json:"id"`
+	Title          string `json:"title"`
+	Classification string `json:"classification"`
+	Text           string `json:"text"`
+	Rating         byte   `json:"rating"`
 }
 
-func NewPost(id uint, t tea, text string, rating byte) post {
-	return post{
-		ID:     id,
-		Tea:    t,
-		Text:   text,
-		Rating: rating,
+func NewPost(t, c, txt string, rat byte) Post {
+	return Post{
+		Title:          t,
+		Classification: c,
+		Text:           txt,
+		Rating:         rat,
 	}
 }

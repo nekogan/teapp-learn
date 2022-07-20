@@ -1,34 +1,19 @@
-create table classification (
-	classification_id int not null,
-	primary key(id),
-	title varchar(15) not null
-)
-
-insert into classification (id, title) 
-values 
-	(0, 'Красный'),
-	(1, 'Белый'), 
-	(2, 'Зеленый'),
-	(3, 'Черный'),
-	(4, 'Пуэр')
-
-create table tea (
-	tea_id int GENERATED ALWAYS AS identity,
-	primary key(tea_id),
-	title varchar(255) not null,
-	teaTypeID int not null,
-	constraint fk_teaType
-		foreign key(teaTypeID)
-			references classification(classification_id)
-)
+create table users (
+	user_id int not null GENERATED ALWAYS AS identity,
+	primary key(user_id),
+	user_name varchar(255) not null,
+	user_pass varchar(255) not null,
+	user_avatar varchar,
+	user_firstname varchar(100),
+	user_secondname varchar(100)
+);
 
 create table post (
-	post_id int GENERATED ALWAYS AS identity,
+	post_id int not null GENERATED ALWAYS AS identity,
 	primary key(post_id),
-	tea_id int not null,
+	user_id int not null REFERENCES users(user_id),
+	post_title varchar(40),
+	post_classification varchar(15),
 	post_text text,
-	rating int, 
-	constraint fk_tea
-		foreign key(tea_id)
-			references tea(tea_id)
-)
+	post_rating int
+);
