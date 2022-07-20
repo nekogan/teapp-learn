@@ -12,19 +12,19 @@ import (
 const (
 	host     = "localhost"
 	port     = 5432
-	user     = "postgres"
+	user     = "nekogan"
 	password = "root"
-	dbname   = "postgres"
+	dbname   = "teapp_db"
 )
 
 var DATABASE_URL = fmt.Sprintf("host=%s port=%d user=%s "+"password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
 
-func Connect() {
+func Connection() *pgx.Conn {
 	conn, err := pgx.Connect(context.Background(), DATABASE_URL)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
 		os.Exit(1)
 	}
 	log.Println("CONNECTED TO POSTGRE")
-	defer conn.Close(context.Background())
+	return conn
 }
