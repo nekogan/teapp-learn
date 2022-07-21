@@ -6,36 +6,46 @@ import (
 	"log"
 	"os"
 	"teapp/models"
+
+	"github.com/jackc/pgx/v4"
 )
 
-func SaveToDB(u *models.User, p models.Post) {
-	conn := Connection()
+func SaveToDB(u *models.User, p models.Post, conn *pgx.Conn) {
 	defer conn.Close(context.Background())
 	sqlStatement := fmt.Sprintf(`INSERT INTO post (user_id, post_title, post_classification, post_text, post_rating) 
 		VALUES ('%d', '%s', '%s', '%s', '%d') RETURNING post_id;`,
 		u.ID, p.Title, p.Classification, p.Text, p.Rating)
-	fmt.Println(sqlStatement)
 	post_id := 0
 	err := conn.QueryRow(context.Background(), sqlStatement).Scan(&post_id)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
 		os.Exit(1)
 	}
-	defer conn.Close(context.Background())
 	fmt.Println("New record ID is:", post_id)
 }
 
-func GetUserPosts(usrID int) []models.Post {
-	conn := Connection()
+func GetUser(usrID uint, conn *pgx.Conn) models.User {
 	defer conn.Close(context.Background())
+	sql := fmt.Sprintf(`select user_name, user_avatar, user_firstname, user_secondname from users where user_id='%d'`,
+		usrID)
+	var u models.User
+	err := conn.QueryRow(context.Background(), sql).Scan(&u.Username, &u.Avatar, &u.FirstName, &u.SecondName)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
+		os.Exit(1)
+	}
+	return u
+}
 
-	sqlStatement := fmt.Sprintf(`select post_id, post_title, post_classification, post_text, post_rating from post where user_id='%d'`, usrID)
+func GetUserPosts(usrID uint, conn *pgx.Conn) []models.Post {
+	defer conn.Close(context.Background())
+	sqlStatement := fmt.Sprintf(`select post_id, post_title, post_classification, post_text, post_rating from post where user_id='%d'`,
+		usrID)
 	rows, err := conn.Query(context.Background(), sqlStatement)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
 		os.Exit(1)
 	}
-	defer rows.Close()
 
 	var rowSlice []models.Post
 	for rows.Next() {
