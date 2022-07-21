@@ -34,6 +34,7 @@ func config() string {
 		d.Host, d.Port, d.User, d.Password, d.Dbname)
 }
 
+// TODO:Допилить функцию для получения id пользователя по никнейму
 func Connection() *pgx.Conn {
 	conn, err := pgx.Connect(context.Background(), config())
 	if err != nil {
