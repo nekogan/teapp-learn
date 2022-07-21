@@ -13,23 +13,30 @@ import (
 
 func main() {
 	router := httprouter.New()
-	router.GET("/", Index)
-	router.GET("/:user/", UserPosts)
+	router.POST("/", Index)
+	router.GET("/:user", UserPage)
 	log.Println("STARTING SERVER ON PORT :8080")
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
 
-func Index(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
+func Index(w http.ResponseWriter, _ *http.Request, ps httprouter.Params) {
 	user := m.NewUser("Nekogan", "password", "ImageURL", "Dima", "Koval")
 	post := m.NewPost("Дракон", "Красный", "Самый лучший чай", 10)
-	db.SaveToDB(user, post)
+	db.SaveToDB(user, post, db.Connection(ps.ByName("user")))
 }
 
-func UserPosts(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
-	posts := db.GetUserPosts(1)
-	data, err := json.MarshalIndent(posts, "", "   ")
+func UserPage(w http.ResponseWriter, _ *http.Request, ps httprouter.Params) {
+	user := db.GetUser(uint(db.UserID), db.Connection(ps.ByName("user")))
+	posts := db.GetUserPosts(uint(db.UserID), db.Connection(ps.ByName("user")))
+	userInfo, err := json.MarshalIndent(user, "", "   ")
 	if err != nil {
 		log.Println(err)
 	}
-	fmt.Fprintf(w, "All posts %+v", string(data))
+
+	userPosts, err := json.MarshalIndent(posts, "", "   ")
+	if err != nil {
+		log.Println(err)
+	}
+
+	fmt.Fprintf(w, "User: %+v\n UserPosts: %+v", string(userInfo), string(userPosts))
 }
