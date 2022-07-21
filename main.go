@@ -23,13 +23,13 @@ func Index(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
 	user := m.NewUser("Nekogan", "password", "ImageURL", "Dima", "Koval")
 	post := m.NewPost("Дракон", "Красный", "Самый лучший чай", 10)
 	db.SaveToDB(user, post)
-	newdata, err := json.MarshalIndent(user, "", "   ")
-	if err != nil {
-		log.Println(err)
-	}
-	fmt.Fprint(w, string(newdata))
 }
 
 func UserPosts(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
-	fmt.Fprintf(w, "All posts %+v", db.GetUserPosts(1))
+	posts := db.GetUserPosts(1)
+	data, err := json.MarshalIndent(posts, "", "   ")
+	if err != nil {
+		log.Println(err)
+	}
+	fmt.Fprintf(w, "All posts %+v", string(data))
 }
