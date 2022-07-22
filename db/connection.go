@@ -19,6 +19,7 @@ type db struct {
 	Dbname   string `yaml:"dbname"`
 }
 
+// Getting config from config file
 func config() string {
 	d := db{}
 	file, err := ioutil.ReadFile("db/config.yml")
@@ -30,11 +31,11 @@ func config() string {
 	if err != nil {
 		log.Println(err)
 	}
+
 	return fmt.Sprintf("host=%s port=%d user=%s "+"password=%s dbname=%s sslmode=disable",
 		d.Host, d.Port, d.User, d.Password, d.Dbname)
 }
 
-// TODO:Допилить функцию для получения id пользователя по никнейму
 func Connection() *pgx.Conn {
 	conn, err := pgx.Connect(context.Background(), config())
 	if err != nil {
