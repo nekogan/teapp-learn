@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -24,20 +25,31 @@ func SaveToDB(u *models.User, p models.Post, conn *pgx.Conn) {
 	fmt.Println("New record ID is:", post_id)
 }
 
-func GetUser(usrID uint, conn *pgx.Conn) models.User {
+func GetUserID(user string, conn *pgx.Conn) (int, error) {
+	sql := fmt.Sprintf(`select user_id from users where user_name='%s'`, user)
+	var usrID int
+	err := conn.QueryRow(context.Background(), sql).Scan(&usrID)
+	if err != nil {
+		return 0, errors.New("user not found")
+	}
+	return usrID, nil
+}
+
+func GetUser(usrID int, conn *pgx.Conn) models.User {
 	defer conn.Close(context.Background())
-	sql := fmt.Sprintf(`select user_name, user_avatar, user_firstname, user_secondname from users where user_id='%d'`,
+	sql := fmt.Sprintf(`select user_name, user_pass, user_avatar, user_firstname, user_secondname from users where user_id='%d'`,
 		usrID)
 	var u models.User
-	err := conn.QueryRow(context.Background(), sql).Scan(&u.Username, &u.Avatar, &u.FirstName, &u.SecondName)
+	err := conn.QueryRow(context.Background(), sql).Scan(&u.Username, &u.Pass, &u.Avatar, &u.FirstName, &u.SecondName)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
 		os.Exit(1)
 	}
+
 	return u
 }
 
-func GetUserPosts(usrID uint, conn *pgx.Conn) []models.Post {
+func GetUserPosts(usrID int, conn *pgx.Conn) []models.Post {
 	defer conn.Close(context.Background())
 	sqlStatement := fmt.Sprintf(`select post_id, post_title, post_classification, post_text, post_rating from post where user_id='%d'`,
 		usrID)
