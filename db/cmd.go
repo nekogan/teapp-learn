@@ -12,7 +12,6 @@ import (
 )
 
 func SaveToDB(u *models.User, p models.Post, conn *pgx.Conn) {
-	defer conn.Close(context.Background())
 	sqlStatement := fmt.Sprintf(`INSERT INTO post (user_id, post_title, post_classification, post_text, post_rating) 
 		VALUES ('%d', '%s', '%s', '%s', '%d') RETURNING post_id;`,
 		u.ID, p.Title, p.Classification, p.Text, p.Rating)
@@ -25,38 +24,34 @@ func SaveToDB(u *models.User, p models.Post, conn *pgx.Conn) {
 	fmt.Println("New record ID is:", post_id)
 }
 
-func GetUserID(user string, conn *pgx.Conn) (int, error) {
+func GetUserID(user string, conn *pgx.Conn) (uint, error) {
 	sql := fmt.Sprintf(`select user_id from users where user_name='%s'`, user)
-	var usrID int
+	var usrID uint
 	err := conn.QueryRow(context.Background(), sql).Scan(&usrID)
 	if err != nil {
-		return 0, errors.New("user not found")
+		return 0, errors.New("пользователь не найден")
 	}
 	return usrID, nil
 }
 
-func GetUser(usrID int, conn *pgx.Conn) models.User {
-	defer conn.Close(context.Background())
+func GetUser(usrID uint, conn *pgx.Conn) models.User {
 	sql := fmt.Sprintf(`select user_name, user_pass, user_avatar, user_firstname, user_secondname from users where user_id='%d'`,
 		usrID)
 	var u models.User
 	err := conn.QueryRow(context.Background(), sql).Scan(&u.Username, &u.Pass, &u.Avatar, &u.FirstName, &u.SecondName)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
-		os.Exit(1)
+		fmt.Fprintf(os.Stderr, "Пользователь не найден: %v\n", err)
 	}
 
 	return u
 }
 
-func GetUserPosts(usrID int, conn *pgx.Conn) []models.Post {
-	defer conn.Close(context.Background())
+func GetUserPosts(usrID uint, conn *pgx.Conn) []models.Post {
 	sqlStatement := fmt.Sprintf(`select post_id, post_title, post_classification, post_text, post_rating from post where user_id='%d'`,
 		usrID)
 	rows, err := conn.Query(context.Background(), sqlStatement)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
-		os.Exit(1)
+		fmt.Fprintf(os.Stderr, "Нет записей: %v\n", err)
 	}
 
 	var rowSlice []models.Post
