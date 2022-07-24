@@ -40,7 +40,7 @@ func Connection() *pgx.Conn {
 	conn, err := pgx.Connect(context.Background(), config())
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
-		os.Exit(1)
+		return nil
 	}
 	log.Println("CONNECTED TO POSTGRE")
 	return conn
