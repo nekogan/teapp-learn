@@ -11,17 +11,16 @@ import (
 	"github.com/jackc/pgx/v4"
 )
 
-func SaveToDB(u *models.User, p models.Post, conn *pgx.Conn) {
+func SaveToDB(u uint, p models.Post, conn *pgx.Conn) error {
 	sqlStatement := fmt.Sprintf(`INSERT INTO post (user_id, post_title, post_classification, post_text, post_rating) 
 		VALUES ('%d', '%s', '%s', '%s', '%d') RETURNING post_id;`,
-		u.ID, p.Title, p.Classification, p.Text, p.Rating)
-	post_id := 0
+		u, p.Title, p.Classification, p.Text, p.Rating)
+	var post_id uint
 	err := conn.QueryRow(context.Background(), sqlStatement).Scan(&post_id)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
-		os.Exit(1)
+		return err
 	}
-	fmt.Println("New record ID is:", post_id)
+	return nil
 }
 
 func GetUserID(user string, conn *pgx.Conn) (uint, error) {
@@ -34,16 +33,17 @@ func GetUserID(user string, conn *pgx.Conn) (uint, error) {
 	return usrID, nil
 }
 
-func GetUser(usrID uint, conn *pgx.Conn) models.User {
+func GetUser(usrID uint, conn *pgx.Conn) (models.User, error) {
 	sql := fmt.Sprintf(`select user_name, user_pass, user_avatar, user_firstname, user_secondname from users where user_id='%d'`,
 		usrID)
 	var u models.User
 	err := conn.QueryRow(context.Background(), sql).Scan(&u.Username, &u.Pass, &u.Avatar, &u.FirstName, &u.SecondName)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Пользователь не найден: %v\n", err)
+		return models.User{}, err
 	}
 
-	return u
+	return u, nil
 }
 
 func GetUserPosts(usrID uint, conn *pgx.Conn) []models.Post {
