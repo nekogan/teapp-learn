@@ -7,6 +7,7 @@ type User struct {
 	Avatar     string `json:"user_avatar"`
 	FirstName  string `json:"user_firstName"`
 	SecondName string `json:"user_secondName"`
+	Posts      []Post `json:"user_posts"`
 }
 
 func NewUser(u, p, aurl, fn, sn string) *User {
