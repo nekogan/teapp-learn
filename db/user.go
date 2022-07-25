@@ -27,7 +27,7 @@ func CreateNewUser(u *models.User, conn *pgx.Conn) error {
 	defer conn.Close(context.Background())
 	err := checkUsername(u.Username, conn)
 	if err != nil {
-		return errors.New("такой пользователь уже существует")
+		return err
 	}
 	sqlStatement := fmt.Sprintf(`INSERT INTO users (user_name, user_pass, user_avatar, user_firstname, user_secondname) 
 		VALUES ('%s', '%s', '%s', '%s', '%s') RETURNING user_id;`,
