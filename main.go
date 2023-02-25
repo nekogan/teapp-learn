@@ -34,35 +34,40 @@ func AddPost(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	b, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Println(err)
+		return
 	}
 	var body struct {
-		User_name string      `json:"user_name"`
+		User_name string      `json:"username"`
 		Post      models.Post `json:"post"`
 	}
 	err = json.Unmarshal(b, &body)
 	if err != nil {
 		log.Println(err)
+		return
 	}
-	log.Println(body)
-	user_id, _ := db.GetUserID(body.User_name, conn)
-	newPost := models.NewPost(body.Post.Title, body.Post.Classification, body.Post.Text, body.Post.Rating)
+	user_id, err := db.GetUserID(body.User_name, conn)
+	if err != nil {
+		fmt.Fprintf(w, "Ошибка: %v", err)
+	}
+	newPost := models.NewPost(body.Post.Title, body.Post.Category, body.Post.Text)
 	err = db.SaveToDB(user_id, newPost, conn)
 	if err != nil {
 		log.Println(err)
+		return
 	}
-	log.Println("Success")
+	fmt.Fprintf(w, "Запись успешно добавлена!")
 }
 
 func Registration(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	usrName := r.Header.Get("Username")
-	usrPass, err := db.HashPassword(r.Header.Get("Password"))
+	user, password, _ := r.BasicAuth()
+	passHash, err := models.HashPassword(password)
 	if err != nil {
 		fmt.Fprintf(w, "Ошибка: %v", err)
 		return
 	}
 
-	newUser := models.NewUser(usrName, usrPass, "Avatar", "Dima", "Koval")
-	if err := db.CreateNewUser(newUser, db.Connection()); err != nil {
+	newUser := models.NewUser(user, passHash, "Dima", "Koval", "")
+	if err := models.CreateNewUser(newUser, db.Connection()); err != nil {
 		fmt.Fprintf(w, "Ошибка: %v", err)
 		return
 	}
@@ -73,15 +78,13 @@ func Registration(w http.ResponseWriter, r *http.Request, ps httprouter.Params) 
 func Auth(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	user, password, _ := r.BasicAuth()
 
-	match := db.UserAuth(user, password, db.Connection())
+	match := models.UserAuth(user, password, db.Connection())
 	if !match {
-		fmt.Fprintf(w, "Введены не верные данные для входа")
+		fmt.Fprintf(w, "Введены не верные данные для входа\n")
 		w.Header().Set("WWW-Authenticate", "Basic realm=Restricted")
-		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 		return
 	}
 	w.Header().Set("WWW-Authenticate", "Basic realm=Access to the staging site")
-	http.Error(w, http.StatusText(http.StatusAccepted), http.StatusAccepted)
 
 	fmt.Fprintf(w, "%s, Добро пожаловать!", user)
 }
@@ -97,6 +100,7 @@ func UserPage(w http.ResponseWriter, _ *http.Request, ps httprouter.Params) {
 	}
 
 	user, err := db.GetUser(userId, conn)
+	log.Println(user)
 	if err != nil {
 		fmt.Fprintf(w, "Ошибка: %v", err)
 		return

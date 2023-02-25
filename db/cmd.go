@@ -12,9 +12,9 @@ import (
 )
 
 func SaveToDB(u uint, p models.Post, conn *pgx.Conn) error {
-	sqlStatement := fmt.Sprintf(`INSERT INTO post (user_id, post_title, post_classification, post_text, post_rating) 
-		VALUES ('%d', '%s', '%s', '%s', '%d') RETURNING post_id;`,
-		u, p.Title, p.Classification, p.Text, p.Rating)
+	sqlStatement := fmt.Sprintf(`INSERT INTO post (user_id, post_title, post_category, post_text) 
+		VALUES ('%d', '%s', '%s', '%s') RETURNING post_id;`,
+		u, p.Title, p.Category, p.Text)
 	var post_id uint
 	err := conn.QueryRow(context.Background(), sqlStatement).Scan(&post_id)
 	if err != nil {
@@ -39,7 +39,6 @@ func GetUser(usrID uint, conn *pgx.Conn) (models.User, error) {
 	var u models.User
 	err := conn.QueryRow(context.Background(), sql).Scan(&u.Username, &u.Pass, &u.Avatar, &u.FirstName, &u.SecondName)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Пользователь не найден: %v\n", err)
 		return models.User{}, err
 	}
 
@@ -47,17 +46,18 @@ func GetUser(usrID uint, conn *pgx.Conn) (models.User, error) {
 }
 
 func GetUserPosts(usrID uint, conn *pgx.Conn) []models.Post {
-	sqlStatement := fmt.Sprintf(`select post_id, post_title, post_classification, post_text, post_rating from post where user_id='%d'`,
+	sqlStatement := fmt.Sprintf(`select post_id, post_title, post_category, post_text from post where user_id='%d'`,
 		usrID)
 	rows, err := conn.Query(context.Background(), sqlStatement)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Нет записей: %v\n", err)
+		return []models.Post{}
 	}
 
 	var rowSlice []models.Post
 	for rows.Next() {
 		var p models.Post
-		err := rows.Scan(&p.ID, &p.Title, &p.Classification, &p.Text, &p.Rating)
+		err := rows.Scan(&p.ID, &p.Title, &p.Category, &p.Text)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -65,6 +65,7 @@ func GetUserPosts(usrID uint, conn *pgx.Conn) []models.Post {
 	}
 	if err := rows.Err(); err != nil {
 		log.Fatal(err)
+		return []models.Post{}
 	}
 
 	return rowSlice

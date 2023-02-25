@@ -10,10 +10,10 @@ create table users (
 
 create table post (
 	post_id int not null GENERATED ALWAYS AS identity,
-	primary key(post_id),
-	user_id int not null REFERENCES users(user_id),
+	user_id int,
+	foreign key(user_id) REFERENCES users(user_id) on delete cascade on update cascade,
 	post_title varchar(40),
-	post_classification varchar(15),
+	post_category varchar(1000),
 	post_text text,
 	post_rating int
 );

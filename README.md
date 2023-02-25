@@ -1,3 +1,6 @@
 # teapp-learn
 
-Проект на Go для изучения PostgreSQL
+## Проект для изучения различных технологий
+* Golang
+* PostgreSQL
+* Frontend

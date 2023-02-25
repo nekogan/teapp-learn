@@ -28,6 +28,7 @@ func config() string {
 	}
 
 	err = yaml.Unmarshal(file, &d)
+	log.Println(d)
 	if err != nil {
 		log.Println(err)
 	}
