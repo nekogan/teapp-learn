@@ -23,7 +23,6 @@ type User struct {
 
 func NewUser(u, p, fn, sn, aurl string) User {
 	return User{
-		ID:         1,
 		Username:   u,
 		Pass:       p,
 		FirstName:  fn,

@@ -5,12 +5,14 @@ type Post struct {
 	Title    string `json:"title"`
 	Category string `json:"category"`
 	Text     string `json:"text"`
+	Tags     string `json:"tags"`
 }
 
-func NewPost(t, c, txt string) Post {
+func NewPost(title, cat, txt, tags string) Post {
 	return Post{
-		Title:    t,
-		Category: c,
+		Title:    title,
+		Category: cat,
 		Text:     txt,
+		Tags:     tags,
 	}
 }
