@@ -49,7 +49,7 @@ func AddPost(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	if err != nil {
 		fmt.Fprintf(w, "Ошибка: %v", err)
 	}
-	newPost := models.NewPost(body.Post.Title, body.Post.Category, body.Post.Text)
+	newPost := models.NewPost(body.Post.Title, body.Post.Category, body.Post.Text, body.Post.Category)
 	err = db.SaveToDB(user_id, newPost, conn)
 	if err != nil {
 		log.Println(err)
